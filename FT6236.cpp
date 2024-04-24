@@ -18,8 +18,36 @@ MIT license, all text above must be included in any redistribution
 
 #include "FT6236.h"
 
-/* New class. */
-FT6236::FT6236(TwoWire& wire) : ftWire(wire) { touches = 0; }
+/* ---- Class TouchPoint ---- */
+
+TouchPoint::TouchPoint(uint16_t in_x, uint16_t in_y) : pm_x(in_x), pm_y(in_y)
+{}
+
+/* == comparator between two points */
+bool TouchPoint::operator==(const TouchPoint& in_point)
+{
+    return ((in_point.pm_x == pm_x) && (in_point.pm_y == pm_y));
+}
+
+/* != comparator between two points */
+bool TouchPoint::operator!=(const TouchPoint& in_point)
+{
+    return ((in_point.pm_x != pm_x) || (in_point.pm_y != pm_y));
+}
+
+/* ---- Class FT6236 ---- */
+
+FT6236::FT6236(TwoWire& wire) : ftWire(wire)
+{
+    touches = FT6236_INVALID_STATE;
+
+    for (uint8_t i = 0; i < 2; i++)
+    {
+        touchX[i] = FT6236_INVALID_STATE;
+        touchY[i] = FT6236_INVALID_STATE;
+        touchID[i] = FT6236_INVALID_STATE;
+    }
+}
 
 /* Start I2C and check if the FT6236 is found. */
 boolean FT6236::begin(uint8_t thresh)
@@ -34,10 +62,11 @@ boolean FT6236::begin(uint8_t thresh)
     {
         return false;
     }
+    
     //Check if our chip has the correct Chip ID.
     uint8_t id = readRegister8(FT6236_REG_CHIPID);
-    if ((id != FT6236_CHIPID) && (id != FT6236U_CHIPID) &&
-      (id != FT6206_CHIPID))
+
+    if ((id != FT6236_CHIPID) && (id != FT6236U_CHIPID) && (id != FT6206_CHIPID))
     {
         return false;
     }
@@ -49,24 +78,22 @@ boolean FT6236::begin(uint8_t thresh)
 uint8_t FT6236::touched(void)
 {
     uint8_t n = readRegister8(FT6236_REG_NUMTOUCHES);
-    if (n > 2)
-    {
-        n = 0;
-    }
-    return n;
+
+    return (n > 2) ? 0 : n;
 }
 
 /* Get a touch point */
-TS_Point FT6236::getPoint(uint8_t n)
+TouchPoint FT6236::getPoint(uint8_t n)
 {
     readData();
+
     if ((touches == 0) || (n > 1))
     {
-        return TS_Point(0, 0, 0);
+        return TouchPoint(FT6236_INVALID_STATE, FT6236_INVALID_STATE);
     }
     else
     {
-        return TS_Point(touchX[n], touchY[n], 1);
+        return TouchPoint(touchX[n], touchY[n]);
     }
 }
 
@@ -86,17 +113,35 @@ void FT6236::readData(void)
     if ((touches > 2) || (touches == 0))
     {
         touches = 0;
-    }
 
-    for (uint8_t i = 0; i < 2; i++)
+        for (uint8_t i = 0; i < 2; i++)
+        {
+            touchX[i] = FT6236_INVALID_STATE;
+            touchY[i] = FT6236_INVALID_STATE;
+            touchID[i] = FT6236_INVALID_STATE;
+        }
+    }
+    else
     {
-        touchX[i] = i2cdat[0x03 + i * 6] & 0x0F;
-        touchX[i] <<= 8;
-        touchX[i] |= i2cdat[0x04 + i * 6];
-        touchY[i] = i2cdat[0x05 + i * 6] & 0x0F;
-        touchY[i] <<= 8;
-        touchY[i] |= i2cdat[0x06 + i * 6];
-        touchID[i] = i2cdat[0x05 + i * 6] >> 4;
+        for (uint8_t i = 0; i < 2; i++)
+        {
+            touchID[i] = i2cdat[0x05 + i * 6] >> 4;
+
+            if (touchID[i] > 1)
+            {
+                touchX[i] = FT6236_INVALID_STATE;
+                touchY[i] = FT6236_INVALID_STATE;
+                touchID[i] = FT6236_INVALID_STATE;
+                continue;
+            }
+
+            touchX[i] = i2cdat[0x03 + i * 6] & 0x0F;
+            touchX[i] <<= 8;
+            touchX[i] |= i2cdat[0x04 + i * 6];
+            touchY[i] = i2cdat[0x05 + i * 6] & 0x0F;
+            touchY[i] <<= 8;
+            touchY[i] |= i2cdat[0x06 + i * 6];
+        }
     }
 }
 
@@ -138,25 +183,4 @@ void FT6236::debug(void)
     Serial.println(readRegister8(FT6236_REG_POINTRATE));
     Serial.print("Thresh: ");
     Serial.println(readRegister8(FT6236_REG_THRESHHOLD));
-}
-
-TS_Point::TS_Point(void) { x = y = z = 0; }
-
-TS_Point::TS_Point(int16_t _x, int16_t _y, int16_t _z)
-{
-    x = _x;
-    y = _y;
-    z = _z;
-}
-
-/* == comparator between two points */
-bool TS_Point::operator==(TS_Point p1)
-{
-    return ((p1.x == x) && (p1.y == y) && (p1.z == z));
-}
-
-/* != comparator netween two points */
-bool TS_Point::operator!=(TS_Point p1)
-{
-    return ((p1.x != x) || (p1.y != y) || (p1.z != z));
 }

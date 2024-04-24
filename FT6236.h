@@ -32,38 +32,39 @@
 
 #define FT6236_DEFAULT_THRESHOLD 128 // Default threshold for touch detection
 
-class TS_Point
+const uint16_t FT6236_INVALID_STATE = 0xFFFF;
+
+struct TouchPoint
 {
-public:
-  TS_Point(void);
-  TS_Point(int16_t x, int16_t y, int16_t z);
+  public:
+    TouchPoint() = default;
+    TouchPoint(uint16_t in_x, uint16_t in_y);
 
-  bool operator==(TS_Point);
-  bool operator!=(TS_Point);
+    bool operator==(const TouchPoint& in_point);
+    bool operator!=(const TouchPoint& in_point);
 
-  int16_t x;
-  int16_t y;
-  int16_t z;
+  public:
+    uint16_t pm_x = FT6236_INVALID_STATE;
+    uint16_t pm_y = FT6236_INVALID_STATE;
 };
 
 class FT6236
 {
-public:
-  FT6236(TwoWire& wire = Wire);
-  void debug(void);
-  boolean begin(uint8_t thresh = FT6236_DEFAULT_THRESHOLD);
-  uint8_t touched(void);
-  TS_Point getPoint(uint8_t n = 0);
-  uint8_t touches;
-  uint16_t touchX[2], touchY[2], touchID[2];
+  public:
+    FT6236(TwoWire& wire = Wire);
+    boolean begin(uint8_t thresh = FT6236_DEFAULT_THRESHOLD);
+    void debug();
+    TouchPoint getPoint(uint8_t n);
+    uint8_t touched();
+    void readData();
+    uint8_t touches;
+    uint16_t touchX[2], touchY[2], touchID[2];
 
-private:
-  void writeRegister8(uint8_t reg, uint8_t val);
-  uint8_t readRegister8(uint8_t reg);
+  private:
+    void writeRegister8(uint8_t reg, uint8_t val);
+    uint8_t readRegister8(uint8_t reg);
 
-  void readData(void);
-
-  TwoWire& ftWire;
+    TwoWire& ftWire;
 };
 
 #endif
