@@ -57,8 +57,11 @@ class FT6236
     TouchPoint getPoint(uint8_t n);
     uint8_t touched();
     void readData();
+
     uint8_t touches;
-    uint16_t touchX[2], touchY[2], touchID[2];
+    uint16_t touchX[2];
+    uint16_t touchY[2];
+    uint16_t touchID[2];
 
   private:
     void writeRegister8(uint8_t reg, uint8_t val);

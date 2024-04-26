@@ -39,7 +39,7 @@ bool TouchPoint::operator!=(const TouchPoint& in_point)
 
 FT6236::FT6236(TwoWire& wire) : ftWire(wire)
 {
-    touches = FT6236_INVALID_STATE;
+    touches = 0;
 
     for (uint8_t i = 0; i < 2; i++)
     {
