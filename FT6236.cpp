@@ -49,11 +49,10 @@ FT6236::FT6236(TwoWire& wire) : ftWire(wire)
     }
 }
 
-/* Start I2C and check if the FT6236 is found. */
+// The caller is responsible to initialise the used I2C bus!
+// Check if the FT6236 is found.
 boolean FT6236::begin(uint8_t thresh)
 {
-    ftWire.begin();
-
     // Adjust threshold
     writeRegister8(FT6236_REG_THRESHHOLD, thresh);
 
