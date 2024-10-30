@@ -53,7 +53,7 @@ class FT6236
   public:
     FT6236(TwoWire& wire = Wire);
     boolean begin(uint8_t thresh = FT6236_DEFAULT_THRESHOLD);
-    void debug();
+    void printDebugInfo(Print& out_print);
     TouchPoint getPoint(uint8_t n);
     uint8_t touched();
     void readData();
