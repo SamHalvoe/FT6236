@@ -170,16 +170,16 @@ void FT6236::writeRegister8(uint8_t reg, uint8_t val)
 }
 
 /* Debug */
-void FT6236::debug(void)
+void FT6236::printDebugInfo(Print& out_print)
 {
-    Serial.print("Vend ID: 0x");
-    Serial.println(readRegister8(FT6236_REG_VENDID), HEX);
-    Serial.print("Chip ID: 0x");
-    Serial.println(readRegister8(FT6236_REG_CHIPID), HEX);
-    Serial.print("Firm V: ");
-    Serial.println(readRegister8(FT6236_REG_FIRMVERS));
-    Serial.print("Point Rate Hz: ");
-    Serial.println(readRegister8(FT6236_REG_POINTRATE));
-    Serial.print("Thresh: ");
-    Serial.println(readRegister8(FT6236_REG_THRESHHOLD));
+    out_print.print("Vend ID: 0x");
+    out_print.println(readRegister8(FT6236_REG_VENDID), HEX);
+    out_print.print("Chip ID: 0x");
+    out_print.println(readRegister8(FT6236_REG_CHIPID), HEX);
+    out_print.print("Firm V: ");
+    out_print.println(readRegister8(FT6236_REG_FIRMVERS));
+    out_print.print("Point Rate Hz: ");
+    out_print.println(readRegister8(FT6236_REG_POINTRATE));
+    out_print.print("Thresh: ");
+    out_print.println(readRegister8(FT6236_REG_THRESHHOLD));
 }
